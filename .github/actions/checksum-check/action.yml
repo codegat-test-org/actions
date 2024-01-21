@@ -25,7 +25,7 @@ runs:
       run: echo "version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
 
     - name: Compare Checksums between ${{ steps.ground-truth.outputs.version }} and ${{ inputs.config-tag }}
-      shell: bash
+      shell: bash {0}
       id: check
       run: |
         git diff --exit-code ..${{ steps.ground-truth.outputs.version }} CHECKSUM
