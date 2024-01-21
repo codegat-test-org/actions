@@ -28,7 +28,7 @@ runs:
       shell: bash
       id: check
       run: |
-        git diff --exit-code ..${{ steps.ground-truth.outputs.version }} TRUTH
+        git diff --exit-code ..${{ steps.ground-truth.outputs.version }} CHECKSUM
         if [ "$?" -eq 0 ]; then
           echo "result=true" >> $GITHUB_OUTPUT
         else
