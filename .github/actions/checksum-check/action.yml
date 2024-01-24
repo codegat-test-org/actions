@@ -1,9 +1,13 @@
 name: Checksum Check
 inputs:
+  checksum-name:
+    type: string
+    required: true
+    description: The name of the GitHub artifact containing the checksum that will be compared against
   checksum-location:
     type: string
     required: true
-    description: Location of the checksums that will be compared against
+    description: Location of the checksum that will be compared against
   checked-against:
     type: string
     required: false
@@ -35,7 +39,9 @@ runs:
         git checkout ${{ steps.ground-truth.outputs.version }}
         diff ${{ inputs.checksum-location }}/CHECKSUM CHECKSUM
         if [ "$?" -eq 0 ]; then
+          echo "::notice::The checksum in the '${{ inputs.checksum-name }}' artifact is the same as the checksum tagged as '${{ steps.ground-truth.outputs.version }}'"
           echo "result=true" >> $GITHUB_OUTPUT
         else
+          echo "::error::The checksum in the '${{ inputs.checksum-name }}' artifact is different to the checksum tagged as '${{ steps.ground-truth.outputs.version }}'"
           echo "result=false" >> $GITHUB_OUTPUT
         fi
