@@ -29,7 +29,7 @@ runs:
         if [[ "${{ inputs.checked-against }}" == "" ]]; then
           echo "version=$(git describe --tags --abbrev=0)" >> $GITHUB_OUTPUT
         else
-          echo "version=${{ inputs.config-tag }}" >> $GITHUB_OUTPUT
+          echo "version=${{ inputs.checked-against }}" >> $GITHUB_OUTPUT
         fi
 
     - name: Compare Checksum against ${{ steps.ground-truth.outputs.version }}
