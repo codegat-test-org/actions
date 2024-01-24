@@ -35,4 +35,3 @@ runs:
         else
           echo "result=false" >> $GITHUB_OUTPUT
         fi
-        git switch -
