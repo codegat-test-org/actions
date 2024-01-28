@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir -p ${{ env.CHECKSUMS_LOCAL_LOCATION }}
           echo "1234" > ${{ env.CHECKSUMS_LOCAL_LOCATION }}/CHECKSUM
-          sleep 10
+          mv test_report.xml ${{ env.CHECKSUMS_LOCAL_LOCATION }}/test_report.xml
 
       - name: Generate Checksum Artifact Name
         id: artifact
