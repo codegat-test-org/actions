@@ -45,7 +45,7 @@ jobs:
         run: echo "name=$(echo '${{ inputs.model-name }}-${{ inputs.config-tag }}' | tr '/' '-')" >> $GITHUB_OUTPUT
 
       - name: Upload Checksum Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4.3.0
         with:
           name: ${{ steps.artifact.outputs.name }}
           if-no-files-found: error
