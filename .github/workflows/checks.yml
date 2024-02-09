@@ -14,40 +14,46 @@ on:
         type: string
         required: true
         description: The name of a GitHub Deployment Environment that is inherited from the caller
+      test-markers:
+        type: string
+        required: true
+        description: A python expression of markers to pass to the reproducibility pytests
     outputs:
       artifact-name:
         value: ${{ jobs.repro.outputs.artifact-name }}
-        description: Name of the artifact containing the checksums for this repro run
+        description: Name of the artifact containing the checksums and test report for this repro run
+      experiment-location:
+        value: ${{ jobs.repro.outputs.experiment-location }}
+        description: Location of the experiment on the target environment
 env:
-  CHECKSUMS_LOCAL_LOCATION: /opt/checksums
+  TEST_OUTPUT_LOCAL_LOCATION: /opt/test-output
 jobs:
   repro:
+    # NOTE: A lot of these `vars` and `secrets` are not found in this repository. Instead, they are inherited
+    # from the calling workflow (for example, `ACCESS-NRI/access-om2-configs`)
     name: Run ${{ github.ref_name }}
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment-name }}
     outputs:
       artifact-name: ${{ steps.artifact.outputs.name }}
+      experiment-location: ${{ steps.run.outputs.experiment-location }}
+    env:
+      EXPERIMENT_LOCATION: ${{ vars.EXPERIMENTS_LOCATION }}/${{ inputs.model-name }}/${{ inputs.config-tag }}
     steps:
-      - name: Checkout Configs Repo
-        # for test framework - note that this one is ACCESS-OM2 specific
-        uses: actions/checkout@v4
-        with:
-          ref: main
-
-      - name: Do the test
+      - name: Copy Back Checksums and Test Report
         run: |
           mkdir -p ${{ env.CHECKSUMS_LOCAL_LOCATION }}/checksum
           mkdir -p ${{ env.CHECKSUMS_LOCAL_LOCATION }}/performance
-          echo "1234" > ${{ env.CHECKSUMS_LOCAL_LOCATION }}/checksum/CHECKSUM
-          mv test_report.xml ${{ env.CHECKSUMS_LOCAL_LOCATION }}/checksum/test_report.xml
+          echo "1234" > ${{ env.CHECKSUMS_LOCAL_LOCATION }}/checksum/historic-checksum.yml
+          echo "<>" > ${{ env.CHECKSUMS_LOCAL_LOCATION }}/checksum/test_report.xml
 
-      - name: Generate Checksum Artifact Name
+      - name: Generate Test Output Artifact Name
         id: artifact
-        run: echo "name=$(echo '${{ inputs.model-name }}-${{ inputs.config-tag }}' | tr '/' '-')" >> $GITHUB_OUTPUT
+        run: echo "name=${{ inputs.model-name }}-${{ inputs.config-tag }}" >> $GITHUB_OUTPUT
 
-      - name: Upload Checksum Artifact
-        uses: actions/upload-artifact@v4.3.0
+      - name: Upload Test Output
+        uses: actions/upload-artifact@v3
         with:
           name: ${{ steps.artifact.outputs.name }}
           if-no-files-found: error
-          path: ${{ env.CHECKSUMS_LOCAL_LOCATION }}
+          path: ${{ env.TEST_OUTPUT_LOCAL_LOCATION }}
