@@ -38,7 +38,7 @@ jobs:
       artifact-name: ${{ steps.artifact.outputs.name }}
     env:
       EXPERIMENT_LOCATION: ${{ vars.EXPERIMENTS_LOCATION }}/${{ inputs.model-name }}/${{ inputs.config-tag }}
-      CHECKSUMS_LOCAL_LOCATION: /opt
+      CHECKSUMS_LOCAL_LOCATION: /opt/test-output
     steps:
       - name: Copy Back Checksums and Test Report
         run: |
