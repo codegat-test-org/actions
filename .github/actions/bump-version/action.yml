@@ -42,7 +42,7 @@ runs:
       run: |
         # check validity of versioning schemes
         found=false
-        for valid_scheme in "${{ env.VALID_VERSIONING_SCHEMES }}"; do
+        for valid_scheme in ${{ env.VALID_VERSIONING_SCHEMES }}; do
           if [[ "${{ inputs.versioning-scheme }}" == "${valid_scheme}" ]]; then
             found=true
             break
@@ -55,7 +55,7 @@ runs:
 
         # check validity of bump types for each versioning scheme
         found=false
-        for valid_bump in "${VALID_${{ inputs.versioning-scheme }}_BUMP_TYPES}"; do
+        for valid_bump in ${VALID_${{ inputs.versioning-scheme }}_BUMP_TYPES}; do
           if [[ "${{ inputs.bump-type }}" == "${valid_bump}" ]]; then
             exit 0
           fi
