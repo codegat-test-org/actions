@@ -53,14 +53,28 @@ runs:
           exit 1
         fi
 
+    - name: Check Bump Type Validity for ${{ inputs.versioning.scheme }}
+      shell: bash
+      env:
+        VALID_CALVER_MINOR_BUMP_TYPES: major minor
+        VALID_SEMVER_MAJOR_MINOR_BUMP_TYPES: major minor
+      run: |
         # check validity of bump types for each versioning scheme
         found=false
-        valid_bumps="${VALID_${{ inputs.versioning-scheme }}_BUMP_TYPES}"
-        for valid_bump in ${valid_bumps}; do
-          if [[ "${{ inputs.bump-type }}" == "${valid_bump}" ]]; then
-            exit 0
-          fi
-        done
+
+        if [[ "${{ inputs.versioning-scheme }}" == "calver-minor" ]]; then
+          for valid_bump in ${{ env.VALID_CALVER_MINOR_BUMP_TYPES }}; do
+            if [[ "${{ inputs.bump-type }}" == "${valid_bump}" ]]; then
+              exit 0
+            fi
+          done
+        elif [[ "${{ inputs.versioning-scheme }}" == "semver-major-minor" ]]; then
+          for valid_bump in ${{ env.VALID_SEMVER_MAJOR_MINOR_BUMP_TYPES }}; do
+            if [[ "${{ inputs.bump-type }}" == "${valid_bump}" ]]; then
+              exit 0
+            fi
+          done
+        fi
 
         echo "::error::Bump type ${{ inputs.bump-type }} is not supported in ${{ inputs.versioning-scheme }}. Please check the list of allowed 'bump-type's."
         exit 1
