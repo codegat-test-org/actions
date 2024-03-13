@@ -83,16 +83,16 @@ runs:
       shell: bash
       if: inputs.versioning-scheme == 'calver-minor'
       id: calver-minor
-        # Regarding the regex in the script: `([0-9]{4}\.(?:0[1-9]|1[1-2]))\.([0-9]+)` is broken down into:
-        # `([0-9]{4}\.(?:0[1-9]|1[1-2]))`: Major version as a date in the form YYYY.0M (eg. `2024.03`)
+        # Regarding the regex in the script: `([0-9]{4}\.(0[1-9]|1[1-2]))\.([0-9]+)` is broken down into:
+        # `([0-9]{4}\.(0[1-9]|1[1-2]))`: Major version as a date in the form YYYY.0M (eg. `2024.03`)
         # `\.`: Version separator (eg. `.`)
         # `([0-9]+)`: Minor version (eg. `1`)
         # which would give `2024.03.1`
       run: |
-        regex="([0-9]{4}\.(?:0[1-9]|1[1-2]))\.([0-9]+)"
+        regex="([0-9]{4}\.(0[1-9]|1[1-2]))\.([0-9]+)"
         if [[ "${{ inputs.version }}" =~ "${regex}" ]]; then
           major_version="${BASH_REMATCH[1]}"
-          minor_version="${BASH_REMATCH[2]}"
+          minor_version="${BASH_REMATCH[3]}"
         else
           echo "::error::${{ inputs.version }} does not conform to ${{ inputs.versioning-scheme }}!"
           exit 1
