@@ -142,7 +142,7 @@ runs:
         echo "before=${{ inputs.version }}" >> $GITHUB_OUTPUT
         echo "type=${{ inputs.bump-type }}" >> $GITHUB_OUTPUT
 
-        bump=$(jq --compact-output --raw-output '.[].outputs.bump | select( . =! null)' '${{ steps }}')
+        bump=$(jq --compact-output --raw-output '.[].outputs.bump | select( . =! null)' '${{ toJson(steps) }}')
         echo $bump
 
         echo "after=$bump" >> $GITHUB_OUTPUT
