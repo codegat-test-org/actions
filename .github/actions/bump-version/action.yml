@@ -55,7 +55,8 @@ runs:
 
         # check validity of bump types for each versioning scheme
         found=false
-        for valid_bump in ${VALID_${{ inputs.versioning-scheme }}_BUMP_TYPES}; do
+        valid_bumps="${VALID_${{ inputs.versioning-scheme }}_BUMP_TYPES}"
+        for valid_bump in ${valid_bumps}; do
           if [[ "${{ inputs.bump-type }}" == "${valid_bump}" ]]; then
             exit 0
           fi
