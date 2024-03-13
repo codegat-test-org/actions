@@ -118,7 +118,7 @@ runs:
         # which would give `12.1`
       run: |
         regex="([0-9]+)\.([0-9]+)"
-        if [[ "${{ inputs.version }}" =~ "${regex}" ]]; then
+        if [[ "${{ inputs.version }}" =~ $regex ]]; then
           major_version="${BASH_REMATCH[1]}"
           minor_version="${BASH_REMATCH[2]}"
         else
