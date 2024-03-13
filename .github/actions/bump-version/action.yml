@@ -34,6 +34,7 @@ runs:
   using: composite
   steps:
     - name: Setup Action-scoped ENVs
+      shell: bash
       run: |
           echo "VALID_VERSIONING_SCHEMES=calver-minor semver-major-minor" >> $GITHUB_ENV
           echo "VALID_CALVER_MINOR_BUMP_TYPES=major minor" >> $GITHUB_ENV
