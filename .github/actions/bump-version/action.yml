@@ -18,7 +18,7 @@ inputs:
     type: string
     description: |
       The type of bump. This changes depending on the `versioning-scheme`.
-      'calver-minor': 'major' or 'minor'.
+      'calver-minor': 'major', 'minor' or 'current'.
       'semver-major-minor': 'major' or 'minor'.
 outputs:
   before:
@@ -35,15 +35,15 @@ runs:
   steps:
     - name: Setup Action-scoped ENVs
       shell: bash
+      # Since there is no top-level 'env:' directive in custom actions like
+      # there is in workflows, we have to be a bit hacky...
       run: |
-          echo "VALID_VERSIONING_SCHEMES=calver-minor semver-major-minor" >> $GITHUB_ENV
-          echo "VALID_CALVER_MINOR_BUMP_TYPES=major minor" >> $GITHUB_ENV
-          echo "VALID_SEMVER_MAJOR_MINOR_BUMP_TYPES=major minor" >> $GITHUB_ENV
+        echo "VALID_VERSIONING_SCHEMES=calver-minor semver-major-minor" >> $GITHUB_ENV
+        echo "VALID_CALVER_MINOR_BUMP_TYPES=major minor current" >> $GITHUB_ENV
+        echo "VALID_SEMVER_MAJOR_MINOR_BUMP_TYPES=major minor" >> $GITHUB_ENV
 
-    - name: Check Input Validity
+    - name: Check Versioning Scheme Validity
       shell: bash
-      env:
-        VALID_VERSIONING_SCHEMES: calver-minor semver-major-minor
       run: |
         # check validity of versioning schemes
         found=false
@@ -85,14 +85,14 @@ runs:
       shell: bash
       if: inputs.versioning-scheme == 'calver-minor'
       id: calver-minor
-        # Regarding the regex in the script: `([0-9]{4}\.(0[1-9]|1[1-2]))\.([0-9]+)` is broken down into:
-        # `([0-9]{4}\.(0[1-9]|1[1-2]))`: Major version as a date in the form YYYY.0M (eg. `2024.03`)
-        # `\.`: Version separator (eg. `.`)
-        # `([0-9]+)`: Minor version (eg. `1`)
-        # which would give `2024.03.1`
+      # Regarding the regex in the script: `([0-9]{4}\.(0[1-9]|1[1-2]))\.([0-9]+)` is broken down into:
+      # `([0-9]{4}\.(0[1-9]|1[1-2]))`: Major version as a date in the form YYYY.0M (eg. `2024.03`)
+      # `\.`: Version separator (eg. `.`)
+      # `([0-9]+)`: Minor version (eg. `1`)
+      # which would give `2024.03.1`
       run: |
         regex="([0-9]{4}\.(0[1-9]|1[1-2]))\.([0-9]+)"
-        if [[ "${{ inputs.version }}" =~ $regex ]]; then
+        if [[ "${{ inputs.version }}" =~ "${regex}" ]]; then
           major_version="${BASH_REMATCH[1]}"
           minor_version="${BASH_REMATCH[3]}"
         else
@@ -100,12 +100,18 @@ runs:
           exit 1
         fi
 
-        if [[ "${{ inputs.bump-type }}" == "minor" ]]; then
+        if [[ "${{ inputs.bump-type }}" == "major" ]]; then
+          # we convert '.' to `date`s expected '-'-separator for date formats, and add a day so it is a valid date
+          major_version_valid_date="${major_version/./-}-01"
+          major_version=$(date --date "${major_version_valid_date} + 1 month" +%Y.%m)
+          minor_version=0
+        elif [[ "${{ inputs.bump-type }}" == "minor" ]]; then
           minor_version=$((minor_version + 1))
-        elif [[ "${{ inputs.bump-type }}" == "major" ]]; then
+        elif [[ "${{ inputs.bump-type }}" == "current" ]]; then
           major_version=$(date +%Y.%m)
           minor_version=0
         fi
+
         new_version="${major_version}.${minor_version}"
         echo "bump=$new_version" >> $GITHUB_OUTPUT
 
@@ -140,11 +146,13 @@ runs:
     - name: Consolidate Results
       shell: bash
       id: results
+      # Each of the Bump steps with ids above are mutually exclusive (check their conditionals).
+      # But to have the result of whichever one that ran as an output of the action,
+      # we have to store that result in a step that always runs, so can be a static
+      # `value` of the output. This is that step.
       run: |
         echo "before=${{ inputs.version }}" >> $GITHUB_OUTPUT
         echo "type=${{ inputs.bump-type }}" >> $GITHUB_OUTPUT
 
         bump=$(jq --compact-output --raw-output '.[].outputs.bump | select( . != null)' <<< '${{ toJson(steps) }}')
-        echo $bump
-
         echo "after=$bump" >> $GITHUB_OUTPUT
